@@ -10,28 +10,23 @@ const cron = require('node-cron');
 
 const app = express();
 
-try {
-    const pool = new Pool(
-        process.env.DATABASE_URL
-            ? {
-                connectionString: process.env.DATABASE_URL,
-                ssl: {
-                    rejectUnauthorized: false,
-                },
-            }
-            : {
-                host: process.env.POSTGRES_HOST,
-                port: process.env.POSTGRES_PORT,
-                user: process.env.POSTGRES_USER,
-                password: process.env.POSTGRES_PASSWORD,
-                database: process.env.POSTGRES_DATABASE,
-            }
+const pool = new Pool(
+    process.env.DATABASE_URL
+        ? {
+            connectionString: process.env.DATABASE_URL,
+            ssl: {
+                rejectUnauthorized: false,
+            },
+        }
+        : {
+            host: process.env.POSTGRES_HOST,
+            port: process.env.POSTGRES_PORT,
+            user: process.env.POSTGRES_USER,
+            password: process.env.POSTGRES_PASSWORD,
+            database: process.env.POSTGRES_DATABASE,
+        }
 
-    );
-    console.log('Connected to PostgreSQL');
-} catch (err) {
-    console.error('DB connection failed:', err);
-}
+);
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
