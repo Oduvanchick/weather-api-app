@@ -10,22 +10,28 @@ const cron = require('node-cron');
 
 const app = express();
 
-const pool = new Pool(
-    process.env.DATABASE_URL
-        ? {
-            connectionString: process.env.DATABASE_URL,
-            ssl: {
-                rejectUnauthorized: false,
-            },
-        }
-        : {
-            host: process.env.POSTGRES_HOST,
-            port: process.env.POSTGRES_PORT,
-            user: process.env.POSTGRES_USER,
-            password: process.env.POSTGRES_PASSWORD,
-            database: process.env.POSTGRES_DATABASE,
-        }
-);
+try {
+    const pool = new Pool(
+        process.env.DATABASE_URL
+            ? {
+                connectionString: process.env.DATABASE_URL,
+                ssl: {
+                    rejectUnauthorized: false,
+                },
+            }
+            : {
+                host: process.env.POSTGRES_HOST,
+                port: process.env.POSTGRES_PORT,
+                user: process.env.POSTGRES_USER,
+                password: process.env.POSTGRES_PASSWORD,
+                database: process.env.POSTGRES_DATABASE,
+            }
+
+    );
+    console.log('Connected to PostgreSQL');
+} catch (err) {
+    console.error('DB connection failed:', err);
+}
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -81,6 +87,7 @@ app.post('/api/subscribe', async (req, res) => {
     }
 
     try {
+        console.log("Try to check for existing subscription");
         // Check for existing subscription
         const existing = await pool.query(
             'SELECT * FROM subscriptions WHERE email = $1 AND city = $2',
@@ -91,6 +98,7 @@ app.post('/api/subscribe', async (req, res) => {
             return res.status(409).json({ error: 'Email already subscribed' });
         }
 
+
         // Insert new subscription
         const token = uuidv4();
         await pool.query(
@@ -98,6 +106,7 @@ app.post('/api/subscribe', async (req, res) => {
             [email, city, frequency, false, token]
         );
 
+        console.log("Try sending confirmation email");
         // Sending confirmation email
         if (process.env.NODE_ENV !== 'test') {
             const confirmLink = `${process.env.BASE_URL || 'http://localhost:3000'}/api/confirm/${token}`;
@@ -112,6 +121,7 @@ app.post('/api/subscribe', async (req, res) => {
         return res.status(200).json({ message: 'Confirmation email sent.' });
 
     } catch (err) {
+        console.log('Subscribe error: ', err);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
