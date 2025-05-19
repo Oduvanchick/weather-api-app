@@ -29,6 +29,9 @@ const pool = new Pool(
 );
 
 console.log('💾 DATABASE_URL =', process.env.DATABASE_URL);
+console.log('💾 POSTGRES_HOST =', process.env.POSTGRES_HOST);
+console.log('💾 POSTGRES_USER =', process.env.POSTGRES_USER);
+console.log('💾 POSTGRES_PORT =', process.env.POSTGRES_PORT);
 
 try {
     const pool2 = new Pool(
@@ -110,6 +113,7 @@ app.post('/api/subscribe', async (req, res) => {
     try {
         console.log("Try to check for existing subscription");
         // Check for existing subscription
+        console.log('📌 pool.connectionString in /subscribe =', pool.options?.connectionString);
         const existing = await pool.query(
             'SELECT * FROM subscriptions WHERE email = $1 AND city = $2',
             [email, city]
