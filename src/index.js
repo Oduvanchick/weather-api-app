@@ -28,34 +28,6 @@ const pool = new Pool(
 
 );
 
-console.log('💾 DATABASE_URL =', process.env.DATABASE_URL);
-console.log('💾 POSTGRES_HOST =', process.env.POSTGRES_HOST);
-console.log('💾 POSTGRES_USER =', process.env.POSTGRES_USER);
-console.log('💾 POSTGRES_PORT =', process.env.POSTGRES_PORT);
-
-try {
-    const pool2 = new Pool(
-        process.env.DATABASE_URL
-            ? {
-                connectionString: process.env.DATABASE_URL,
-                ssl: {
-                    rejectUnauthorized: false,
-                },
-            }
-            : {
-                host: process.env.POSTGRES_HOST,
-                port: process.env.POSTGRES_PORT,
-                user: process.env.POSTGRES_USER,
-                password: process.env.POSTGRES_PASSWORD,
-                database: process.env.POSTGRES_DATABASE,
-            }
-
-    );
-
-} catch (error) {
-    this.log.error("error creating pool");
-}
-
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -111,7 +83,6 @@ app.post('/api/subscribe', async (req, res) => {
     }
 
     try {
-        console.log("Try to check for existing subscription");
         // Check for existing subscription
         console.log('📌 pool.connectionString in /subscribe =', pool.options?.connectionString);
         const existing = await pool.query(
@@ -131,7 +102,6 @@ app.post('/api/subscribe', async (req, res) => {
             [email, city, frequency, false, token]
         );
 
-        console.log("Try sending confirmation email");
         // Sending confirmation email
         if (process.env.NODE_ENV !== 'test') {
             const confirmLink = `${process.env.BASE_URL || 'http://localhost:3000'}/api/confirm/${token}`;
